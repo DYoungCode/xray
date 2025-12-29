@@ -1,23 +1,35 @@
 import socket
+from datetime import datetime
 
 target = "127.0.0.1"
 
-# AF_INET = IPv4 (vs IPv6 (AF_INET6))
-# SOCK_STREAM = TCP (vs_UDP)
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print("*" * 50)
+print(f"Scanning Target: {target}")
+print(f"Time started: {str(datetime.now())}")
+print("*" * 50)
 
-port = 80
+try:
+    # Scan ports 1 to 1024 (well-known ports)
+    for port in range(1, 1025):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(0.5)
 
-# wait 1 second. If fw blocks packets, we'll wait forever
-s.settimeout(1)
+        result = s.connect_ex((target, port))
 
-# Attempt conn, connect_ex doesn't crash if conn fails, just returns status
-result = s.connect_ex((target, port))
+        if result == 0:
+            print(f"Port {port} is OPEN")
+        
+        s.close()
 
-if result == 0:
-    print(f"Port {port} is OPEN")
-else:
-    print(f"Port {port} is CLOSED")
+except KeyboardInterrupt:
+    print("\n Exiting program.")
+
+except socket.gaierror:
+    print("Hostname couldn't be resolved.")
+
+except socket.error:
+    print("Couldn't connect to target.")
+
 
     
 
