@@ -1,10 +1,14 @@
 import socket
+import sys
 import concurrent.futures
 from datetime import datetime
 
-target = "127.0.0.1"
-
-
+if len(sys.argv) == 2:
+    target = socket.gethostbyname(sys.argv[1])
+else:
+    print("Invalid amount of arguments.")
+    print("Syntax: python xray.py <ip>")
+    sys.exit() 
 
 def scan_port(port):
     try:
