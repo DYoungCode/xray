@@ -1,14 +1,20 @@
+import argparse
 import socket
 import sys
 import concurrent.futures
 from datetime import datetime
 
-if len(sys.argv) == 2:
-    target = socket.gethostbyname(sys.argv[1])
-else:
-    print("Invalid amount of arguments.")
-    print("Syntax: python xray.py <ip>")
-    sys.exit() 
+def get_arguments():
+    parser = argparse.ArgumentParser(description="XRAY is a Python Multi-Threaded Port Scanner")
+
+    # Target arguement (Required)
+    parser.add_argument("-t", "--target", dest="target", help="Target IP / Domain", required=True)
+
+    # Ports argument (Optional - Default to Well-known ports (1-1024)
+    parser.add_argument("-p", "--ports", dest="ports", help="Port range to scan (e.g. 1-100)", default="1-1024")
+
+    options = parser.parse_args()
+    return options
 
 def scan_port(port):
     try:
@@ -35,6 +41,21 @@ def scan_port(port):
 
 if __name__ == "__main__":
 
+    # First get arguments from the user
+    options = get_arguments()
+
+    # resolve the target
+    try:
+        target = socket.gethostbyname(options.target)
+    except socket.gaierror:
+        print("[-] Hostname couldn't be resolved.")
+        sys.exit()
+
+    #Parse the port range string "1-100" into 2 integers
+    start_port, end_port = options.ports.split("-")
+    start_port = int(start_port)
+    end_port = int(end_port)
+
     print("*" * 50)
     print(f"Scanning Target: {target}")
     print(f"Time started: {str(datetime.now())}")
@@ -44,14 +65,10 @@ if __name__ == "__main__":
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
 
-            executor.map(scan_port, range(1, 1025))
+            executor.map(scan_port, range(start_port, end_port + 1))
         
     except KeyboardInterrupt:
         print("\n Exiting program.")
-
-    except socket.gaierror:
-        print("Hostname couldn't be resolved.")
-
     except socket.error:
         print("Couldn't connect to target.")
 
