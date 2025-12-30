@@ -4,9 +4,12 @@ import sys
 import threading
 import concurrent.futures
 from datetime import datetime
+from colorama import init, Fore
 
 import json
 
+# true resets color back to white after every print 
+init(autoreset=True)
 
 def get_arguments():
     parser = argparse.ArgumentParser(description="XRAY is a Python Multi-Threaded Port Scanner")
@@ -39,9 +42,9 @@ def scan_port(port):
             # lets try to grab banner
             try:
                 banner = s.recv(1024).decode().strip()
-                print(f"Port {port} OPEN. Banner received: {banner}")
+                print(Fore.GREEN + f"Port {port} OPEN. Banner received: {banner}")
             except:
-                print(f"Port {port} OPEN")
+                print(Fore.GREEN + f"Port {port} OPEN")
 
             # Save to our list in safe manner
             with results_lock:
@@ -66,7 +69,7 @@ if __name__ == "__main__":
     try:
         target = socket.gethostbyname(options.target)
     except socket.gaierror:
-        print("[-] Hostname couldn't be resolved.")
+        print(Fore.RED + f"[-] Hostname couldn't be resolved.")
         sys.exit()
 
     #Parse the port range string "1-100" into 2 integers
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n Exiting program.")
     except socket.error:
-        print("Couldn't connect to target.")
+        print(Fore.RED + "Couldn't connect to target.")
 
     if options.output:
         try:
@@ -96,7 +99,7 @@ if __name__ == "__main__":
                 json.dump(results, f, indent=4)
             print(f"\n[+] Results saved to {options.output}")
         except IOError:
-            print("\n[-] Could not write to file.")
+            print(Fore.RED + "\n[-] Could not write to file.")
 
     print(f"\nScanning completed at: {str(datetime.now())}")
 
