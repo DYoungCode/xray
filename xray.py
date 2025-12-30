@@ -20,7 +20,14 @@ def scan_port(port):
 
         if result == 0:
             print(f"Port {port} is OPEN")
-        
+            
+            # lets try to grab banner
+            try:
+                banner = s.recv(1024).decode().strip()
+                print(f"Port {port} is open: {banner}")
+            except:
+                print(f"Port {port} is open:")
+
         s.close()
     except:
         pass # if thread fails, let operation die silently
