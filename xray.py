@@ -1,8 +1,12 @@
 import argparse
 import socket
 import sys
+import threading
 import concurrent.futures
 from datetime import datetime
+
+import json
+
 
 def get_arguments():
     parser = argparse.ArgumentParser(description="XRAY is a Python Multi-Threaded Port Scanner")
@@ -13,8 +17,15 @@ def get_arguments():
     # Ports argument (Optional - Default to Well-known ports (1-1024)
     parser.add_argument("-p", "--ports", dest="ports", help="Port range to scan (e.g. 1-100)", default="1-1024")
 
+    # Ability to output results to a JSON file
+    parser.add_argument("-o", "--output", dest="output", help="Save results to a JSON file (optional)")
+
     options = parser.parse_args()
     return options
+
+# Create a results list, 
+results = []
+results_lock = threading.Lock()
 
 def scan_port(port):
     try:
@@ -24,9 +35,7 @@ def scan_port(port):
 
         result = s.connect_ex((target, port))
 
-        if result == 0:
-            #print(f"Port {port} is OPEN")
-            
+        if result == 0:            
             # lets try to grab banner
             try:
                 banner = s.recv(1024).decode().strip()
@@ -34,7 +43,16 @@ def scan_port(port):
             except:
                 print(f"Port {port} OPEN")
 
+            # Save to our list in safe manner
+            with results_lock:
+                results.append({
+                    "port": port,
+                    "banner": banner,
+                    "status": "open"
+                })
+
         s.close()
+
     except:
         pass # if thread fails, let operation die silently
 
@@ -71,6 +89,14 @@ if __name__ == "__main__":
         print("\n Exiting program.")
     except socket.error:
         print("Couldn't connect to target.")
+
+    if options.output:
+        try:
+            with open(options.output, "w") as f:
+                json.dump(results, f, indent=4)
+            print(f"\n[+] Results saved to {options.output}")
+        except IOError:
+            print("\n[-] Could not write to file.")
 
     print(f"\nScanning completed at: {str(datetime.now())}")
 
