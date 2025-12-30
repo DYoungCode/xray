@@ -1,16 +1,14 @@
 import socket
+import concurrent.futures
 from datetime import datetime
 
 target = "127.0.0.1"
 
-print("*" * 50)
-print(f"Scanning Target: {target}")
-print(f"Time started: {str(datetime.now())}")
-print("*" * 50)
 
-try:
-    # Scan ports 1 to 1024 (well-known ports)
-    for port in range(1, 1025):
+
+def scan_port(port):
+    try:
+        # Scan ports 1 to 1024 (well-known ports)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(0.5)
 
@@ -20,15 +18,33 @@ try:
             print(f"Port {port} is OPEN")
         
         s.close()
+    except:
+        pass # if thread fails, let operation die silently
 
-except KeyboardInterrupt:
-    print("\n Exiting program.")
 
-except socket.gaierror:
-    print("Hostname couldn't be resolved.")
+if __name__ == "__main__":
 
-except socket.error:
-    print("Couldn't connect to target.")
+    print("*" * 50)
+    print(f"Scanning Target: {target}")
+    print(f"Time started: {str(datetime.now())}")
+    print("*" * 50)
+
+    try:
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+
+            executor.map(scan_port, range(1, 1025))
+        
+    except KeyboardInterrupt:
+        print("\n Exiting program.")
+
+    except socket.gaierror:
+        print("Hostname couldn't be resolved.")
+
+    except socket.error:
+        print("Couldn't connect to target.")
+
+    print(f"\nScanning completed at: {str(datetime.now())}")
 
 
     
