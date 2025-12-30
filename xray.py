@@ -19,14 +19,14 @@ def scan_port(port):
         result = s.connect_ex((target, port))
 
         if result == 0:
-            print(f"Port {port} is OPEN")
+            #print(f"Port {port} is OPEN")
             
             # lets try to grab banner
             try:
                 banner = s.recv(1024).decode().strip()
-                print(f"Port {port} is open: {banner}")
+                print(f"Port {port} OPEN. Banner received: {banner}")
             except:
-                print(f"Port {port} is open:")
+                print(f"Port {port} OPEN")
 
         s.close()
     except:
